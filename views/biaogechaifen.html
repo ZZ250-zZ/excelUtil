@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>表格拆分</title>
+  <meta name="description" content="表格拆分">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3//decimal.js"></script>
+
+  <link rel="stylesheet" href="/static/css/markdown.min.css">
+  <link rel="stylesheet" href="/static/css/codemirror.min.css">
+  <link rel="stylesheet" href="/static/css/toastify.min.css">
+  <link rel="stylesheet" href="/static/css/bs-theme/default.min.css">
+  <link rel="stylesheet" href="/static/css/bootstrap-select.min.css">
+  <link rel="stylesheet" href="/static/css/app.css?v=1.6.3">
+</head>
+<body class="webio-theme-default">
+<div class="pywebio">
+  <div class="container no-fix-height" id="output-container">
+  </div>
+
+  <div id="input-container" style="height: unset;">
+    <div id="input-cards" class="container">
+      <div class="card" style="height: unset; width: unset;">
+        <div class="card-body">
+          <form id="form-id" action="/parse" method="post" enctype="multipart/form-data">
+
+            <h5 class="card-header">上传tempExcel:</h5>
+            <div class="input-container">
+              <div class="form-group">
+
+                <div class="custom-file">
+                  <input type="file" name="bdFile" class="custom-file-input" id="data-5195"
+                         aria-describedby="data-5195_help" accept=".xlsx*" max_size="209715200"
+                         max_total_size="209715200" auto_focus="true" onchange="change(this)">
+                  <label class="custom-file-label" for="data-5195"
+                         data-browse="浏览文件"><span>Choose file</span></label>
+                  <div class="invalid-feedback"></div>  <!-- input 添加 is-invalid 类 -->
+                  <div class="valid-feedback"></div> <!-- input 添加 is-valid 类 -->
+                  <small id="data-5195_help" class="form-text text-muted"></small>
+                </div>
+              </div>
+            </div>
+            <br>
+
+
+            <div class="ws-form-submit-btns">
+              <button type="submit" class="btn btn-primary">提交</button>
+              <button type="reset" class="btn btn-warning">重置</button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="/static/js/mustache.min.js"></script>  <!--template system-->
+  <script src="/static/js/codemirror.min.js"></script>  <!--code textarea editor-->
+  <script src="/static/js/addons.js"></script>
+  <!--codemirror addons: matchbrackets, python mode, active line, auto refresh, mode/meta and loadmode -->
+  <script src="/static/js/prism.min.js"></script>  <!-- markdown code highlight -->
+  <script src="/static/js/FileSaver.min.js"></script>  <!-- saving files on the client-side -->
+  <script src="/static/js/jquery.min.js"></script>
+  <script src="/static/js/popper.min.js"></script>  <!-- tooltip engine -->
+  <script src="/static/js/bootstrap.min.js"></script>
+  <script src="/static/js/toastify.min.js"></script> <!-- toast -->
+  <script src="/static/js/bs-custom-file-input.min.js"></script> <!-- bootstrap custom file input-->
+  <script src="/static/js/purify.min.js"></script>  <!-- XSS sanitizer -->
+  <script src="/static/js/bootstrap-select.min.js"></script>
+  <script>
+    if (window.navigator.userAgent.indexOf('MSIE ') !== -1 || window.navigator.userAgent.indexOf('Trident/') !== -1)
+      $('#output-container').html('<div class="alert alert-danger" role="alert"> Sorry, this website does not support IE browser. ☹ </div>');
+  </script>
+  <script src="/static/js/pywebio.min.js"></script>
+
+
+  <script src="/static/js/require.min.js"></script> <!-- JS module loader -->
+</div>
+
+<script src="/static/jquery.js"></script>
+<script>
+  const {Workbook} = ExcelJS;
+
+  function change(inputElement) {
+    var files = inputElement.files; // 获取FileList对象
+
+    if (files && files.length > 0) {
+      var fileName = files[0].name; // 获取第一个选定文件的名称
+
+      var nextSiblingElement = inputElement.nextElementSibling;
+      var spanElement = nextSiblingElement.querySelector('.custom-file-label > span');
+      spanElement.innerHTML = fileName
+    }
+  }
+
+  function download(arrayBuffer, date) {
+    const link = document.createElement('a');
+
+    const blob = new Blob([arrayBuffer]);
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.download = 'temp_' + date + '_lx.xlsx';
+
+    document.body.appendChild(link);
+
+    link.click();
+    link.addEventListener('click', () => {
+      link.remove();
+    });
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    // alert(new Decimal('0'))
+    $.ajax({
+      type: 'POST',
+      url: '/upload2',
+      processData: false,
+      contentType: false,
+      data: new FormData($("#form-id")[0]),
+      success: function (data) {
+        alert('上传成功！')
+        window.location.reload();
+      },
+      error: function (data) {
+        alert('上传失败！')
+      }
+    })
+
+
+  }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件列表</title>
+</head>
+<body>
+    <h4>文件列表</h4>
+    <a href="/" style="color:crimson">上传文件</a>
+    <ul id="filelist"></ul>
+
+
+
+<script src="/static/jquery.js"></script>
+<script>
+    $(function(){
+        init();
+    })
+
+    function init(){
+        $.ajax({
+            type: 'GET',
+            url:'/getFileList',
+            success: function(data){
+                console.log(data)
+                $.each(data, function(index,item){
+                    $("#filelist").append("<li><a href='/download?path="+item.path+"'>"+
+                        item.name+"</a>&nbsp;&nbsp;&nbsp;&nbsp;"+getFileSize(item.size)+
+                        "&nbsp;&nbsp;&nbsp;&nbsp;<button onclick='deleteFile(\""+item.path+"\")'>删除</button></li>");
+                })
+
+            }
+        })
+    }
+
+
+    function getFileSize(size){
+        if(size < 1024*1024){
+            return (size/1024).toFixed(2)+'KB'
+        }else if(size >= 1024*1024&&size<Math.pow(1024, 3)){
+            return (size/1024.0/1024).toFixed(2)+'MB'
+        }else{
+            return (size/1024.0/1024/1024).toFixed(2)+'GB'
+        }
+
+    }
+
+    function deleteFile(path){
+        var param={"filePath": path};
+        console.log(path)
+        if (confirm('确定删除?')){
+            $.ajax({
+                type: 'POST',
+                url:'/delete',
+                data: JSON.stringify(param),
+                contentType:'application/json',
+                success: function(data){
+                    window.location.reload();
+                }
+            })
+        }
+
+        return false;
+
+    }
+
+</script>
+</body>
+</html>

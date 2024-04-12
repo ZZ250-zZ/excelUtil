@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>文件上传</title>
+</head>
+  <form id="uploadForm" action="" method="post" enctype="multipart/form-data" >
+    <input type="file" name="file" multiple> <br><br>
+    <input type="submit" value="提交" id="submit"><br><br>
+    <a href="/filelist" style="color:crimson">查看文件列表</a>
+  </form>
+
+  <script src="/static/jquery.js"></script>
+  <script>
+    $(function(){
+      // 提交表单
+      $("#submit").click(function(event){
+        // 阻止表单默认提交
+        event.preventDefault();
+        $.ajax({
+            type: 'POST',
+            url:'/upload',
+            processData: false,
+            contentType: false,
+            data: new FormData($("#uploadForm")[0]),
+            success: function(data){
+                alert('上传成功！')
+                window.location.reload();
+            },
+            error: function(data){
+              alert('上传失败！')
+            }
+        })
+      })
+    })
+  </script>
+<body>
+</body>
+</html>

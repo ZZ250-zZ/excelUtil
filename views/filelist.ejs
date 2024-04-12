@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>
+        <%= title %>
+    </title>
+    <meta name="description" content="<%= title %>">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wang0618/PyWebIO-assets@v1.6.3/css/markdown.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wang0618/PyWebIO-assets@v1.6.3/css/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wang0618/PyWebIO-assets@v1.6.3/css/toastify.min.css">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/wang0618/PyWebIO-assets@v1.6.3/css/bs-theme/default.min.css">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/wang0618/PyWebIO-assets@v1.6.3/css/bootstrap-select.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wang0618/PyWebIO-assets@v1.6.3/css/app.css?v=1.6.3">
+</head>
+<body class="webio-theme-default">
+<div class="pywebio">
+    <div class="container no-fix-height" id="output-container">
+        <div class="markdown-body" id="markdown-body">
+            <div class="text-center" id="pywebio-loading"
+                 style="position: fixed; top: 40%; left: 0px; right: 0px; display: none;">
+                <div class="spinner-grow text-info" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+
+            <div id="pywebio-scope-ROOT">
+                <% for(let i = 0; i < list.length; ++i) { %>
+                <div>
+                    <li>
+                        <a class="btn btn-link" href="/download2?path=<%= list[i].path %>"><%= list[i].name %></a>
+                    </li>
+                </div>
+                <% } %>
+
+            </div>
+        </div>
+        <div id="end-space" style="height: 0px;"></div>
+
+    </div>
+
+    <div id="input-container" style="height: unset;">
+        <div id="input-cards" class="container"></div>
+    </div>
+</div>
+
+</body>
+</html>
