@@ -1,12 +1,10 @@
-// 相当于 controller，定义接口路径
-
 const fs = require('fs');
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const router = express.Router();
 const bodyParser = require('body-parser')
-const {Workbook, ValueType} = require('exceljs');
+const {Workbook} = require('exceljs');
 const Decimal = require('decimal.js');
 const AdmZip = require('adm-zip');
 
@@ -113,7 +111,7 @@ router.post('/upload2', upload.fields([{name: 'bdFile', maxCount: 1}, {name: 'yj
         }
       })
     })
-    // console.log(cache)
+    console.log(cache)
 
     // budan
     const file = req.files.bdFile[0].path;
@@ -133,7 +131,7 @@ router.post('/upload2', upload.fields([{name: 'bdFile', maxCount: 1}, {name: 'yj
     ]
     var allData = []
     workbook2.eachSheet((sheet, index1) => {
-      // console.log('工作表' + index1);
+      console.log('工作表' + index1);
       sheet.eachRow((row, rowIdx) => {
         let rowData = [];
         row.eachCell({includeEmpty: true}, function (cell, colNumber) {
@@ -141,12 +139,11 @@ router.post('/upload2', upload.fields([{name: 'bdFile', maxCount: 1}, {name: 'yj
         });
 
         // 输出当前行的内容
-        // console.log(rowData)
+
         if (rowIdx === 1) {
           rowData.splice(6, 0, '佣金')
-        }
-        else {
-          // console.log(rowData)
+        } else {
+          console.log(rowData)
           const jg = rowData[5];
           const valArr = cache.get(rowData[0])
           if (valArr) {
@@ -183,24 +180,35 @@ router.post('/upload2', upload.fields([{name: 'bdFile', maxCount: 1}, {name: 'yj
       row.eachCell(cell => {
         if (rowIndex === 1) {
           cell.style = {
-            font: {size: 11, bold: true},
+            font: {
+              size: 11,
+              bold: true,
+              color: {argb: 'ffffff'}
+            },
             alignment: {vertical: 'middle', horizontal: 'center'},
+            fill: {
+              type: 'pattern',
+              pattern: 'solid'
+            },
             border: {
-              top: {style: 'thin', color: {argb: 'thin'}},
-              left: {style: 'thin', color: {argb: 'thin'}},
-              bottom: {style: 'thin', color: {argb: 'thin'}},
-              right: {style: 'thin', color: {argb: 'thin'}}
+              top: {style: 'dashed', color: {argb: '0000ff'}},
+              left: {style: 'dashed', color: {argb: '0000ff'}},
+              bottom: {style: 'dashed', color: {argb: '0000ff'}},
+              right: {style: 'dashed', color: {argb: '0000ff'}}
             }
           }
         } else {
           cell.style = {
-            font: {size: 11, bold: false,},
+            font: {
+              size: 11,
+              bold: false,
+            },
             alignment: {vertical: 'middle', horizontal: 'center'},
             border: {
-              top: {style: 'thin', color: {argb: 'thin'}},
-              left: {style: 'thin', color: {argb: 'thin'}},
-              bottom: {style: 'thin', color: {argb: 'thin'}},
-              right: {style: 'thin', color: {argb: 'thin'}}
+              top: {style: 'dashed', color: {argb: '0000ff'}},
+              left: {style: 'dashed', color: {argb: '0000ff'}},
+              bottom: {style: 'dashed', color: {argb: '0000ff'}},
+              right: {style: 'dashed', color: {argb: '0000ff'}}
             }
           }
         }
@@ -221,7 +229,6 @@ router.get('/download2', function (req, res) {
   var filePath = req.query.path;
   console.log('下载文件：' + filePath)
   res.attachment(filePath)
-  res.set('Content-Type', 'application/octet-stream');
   res.sendFile(filePath)
 })
 
@@ -239,14 +246,18 @@ function formatExcel(downWS) {
           font: {
             size: 11,
             bold: true,
-            color: {argb: '000000'}
+            color: {argb: 'ffffff'}
           },
           alignment: {vertical: 'middle', horizontal: 'center'},
+          fill: {
+            type: 'pattern',
+            pattern: 'solid'
+          },
           border: {
-            top: { style: 'thin', color: { argb: '000000' } },
-            left: { style: 'thin', color: { argb: '000000' } },
-            bottom: { style: 'thin', color: { argb: '000000' } },
-            right: { style: 'thin', color: { argb: '000000' } }
+            top: {style: 'dashed', color: {argb: '0000ff'}},
+            left: {style: 'dashed', color: {argb: '0000ff'}},
+            bottom: {style: 'dashed', color: {argb: '0000ff'}},
+            right: {style: 'dashed', color: {argb: '0000ff'}}
           }
         }
       } else {
@@ -257,10 +268,10 @@ function formatExcel(downWS) {
           },
           alignment: {vertical: 'middle', horizontal: 'center'},
           border: {
-            top: { style: 'thin', color: { argb: '000000' } },
-            left: { style: 'thin', color: { argb: '000000' } },
-            bottom: { style: 'thin', color: { argb: '000000' } },
-            right: { style: 'thin', color: { argb: '000000' } }
+            top: {style: 'dashed', color: {argb: '0000ff'}},
+            left: {style: 'dashed', color: {argb: '0000ff'}},
+            bottom: {style: 'dashed', color: {argb: '0000ff'}},
+            right: {style: 'dashed', color: {argb: '0000ff'}}
           }
         }
       }
@@ -268,61 +279,27 @@ function formatExcel(downWS) {
   })
 }
 
-// 设置excel样式
-function dpzjtjFormatExcel(downWS) {
-  downWS.eachRow((row, rowIndex) => {
-    row.eachCell((cell, colNumber) => {
-      if (rowIndex === 1) {
-        cell.style = {
-          font: {size: 11, bold: true, color: {argb: '000000'}},
-          alignment: {vertical: 'middle', horizontal: 'center'},
-          border: {top: { style: 'thin', color: { argb: '000000' } }, left: { style: 'thin', color: { argb: '000000' } }, bottom: { style: 'thin', color: { argb: '000000' } }, right: { style: 'thin', color: { argb: '000000' } }}
-        }
-      } else {
-        cell.style = {
-          font: {size: 11, bold: false,},
-          alignment: {vertical: 'middle', horizontal: 'center'},
-          border: {top: { style: 'thin', color: { argb: '000000' } }, left: { style: 'thin', color: { argb: '000000' } }, bottom: { style: 'thin', color: { argb: '000000' } }, right: { style: 'thin', color: { argb: '000000' } }}
-        }
-        if (colNumber === 6) cell.style.alignment.horizontal = 'left'
-      }
-    })
-  })
-}
-
 
 // 带佣金的补单表头
-const yjColumns = [
+const columns = [
   {header: '商务', key: 'sw', width: 15},
   {header: '日期', key: 'rq', width: 10},
   {header: '店铺名', key: 'dpm', width: 30},
-  {header: '会员名', key: 'hym', width: 30},
+  {header: '会员名', key: 'hym', width: 25},
   {header: '订单号', key: 'ddh', width: 25},
-  {header: '价格', key: 'jg', width: 20},
-  {header: '佣金', key: 'yj', width: 20},
-  {header: '主持佣金', key: 'zcyj', width: 20},
+  {header: '价格', key: 'jg', width: 10},
+  {header: '佣金', key: 'yj', width: 10},
+  {header: '主持佣金', key: 'zcyj', width: 10},
   {header: '主持', key: 'zc', width: 10}
 ]
-// 主持表头：【导出】3.4博.xlsx
-const zcColumns = [
-  {header: '商务', key: 'sw', width: 15},
-  {header: '日期', key: 'rq', width: 10},
-  {header: '店铺名', key: 'dpm', width: 30},
-  {header: '会员名', key: 'hym', width: 30},
-  {header: '订单号', key: 'ddh', width: 25},
-  {header: '价格', key: 'jg', width: 20},
-  {header: '佣金', key: 'yj', width: 20},
-  {header: '主持佣金', key: 'zcyj', width: 20},
-  {header: '主持', key: 'zc', width: 10}
-]
-// ./【导出】3.4/3.4 勤勉 3单 630元.xlsx
+// 3.4 勤勉 3单 630元.xlsx
 const dpColumns = [
   {header: '日期', key: 'rq', width: 10},
   {header: '店铺名', key: 'dpm', width: 30},
-  {header: '会员名', key: 'hym', width: 30},
+  {header: '会员名', key: 'hym', width: 25},
   {header: '订单号', key: 'ddh', width: 25},
-  {header: '价格', key: 'jg', width: 20},
-  {header: '佣金', key: 'yj', width: 20}
+  {header: '价格', key: 'jg', width: 10},
+  {header: '佣金', key: 'yj', width: 10}
 ]
 // 【导出】店铺资金统计表.xlsx
 const dpzjtjColumns = [
@@ -335,9 +312,6 @@ const dpzjtjColumns = [
   {header: 'Excel路径', key: 'lj', width: 10}
 ]
 
-// 凌星根目录：         ./凌星
-const lxRootPath = uploadFolder + '/凌星'
-
 
 // 上传文件
 router.post('/parse', upload.fields([{name: 'bdFile', maxCount: 1}]),
@@ -347,28 +321,10 @@ router.post('/parse', upload.fields([{name: 'bdFile', maxCount: 1}]),
       return;
     }
 
-    // 获取日期
-    const originalname = req.files.bdFile[0].originalname
-    const date = originalname.substring(5, originalname.indexOf('_', 5));
-    // 前缀: 【导出】3.4
-    const prefix = '【导出】' + date;
-
-    // ./凌星/【导出】3.4凌星.xlsx
-    let lxList = []
-    // ./凌星/【导出】店铺资金统计表.xlsx
-    let lxDpzjtjList = []
-    // 删除重新创建凌星根目录：         ./凌星
-    fs.rmdirSync(lxRootPath, {recursive: true})
-    fs.mkdirSync(lxRootPath)
-    //  主持的店铺明细目录：   ./博/【导出】3.4
-    const lxDpmxDir = lxRootPath + '/' + prefix;
-    fs.mkdirSync(lxDpmxDir)
-
-
     // 主持分组
     let cache = new Map();
 
-    // 解析替换过 null 的 temp_3.4_lx.xlsx
+    // budan
     const file = req.files.bdFile[0].path;
     const workbook = new Workbook();
     const workbook2 = await workbook.xlsx.readFile(file);
@@ -385,26 +341,27 @@ router.post('/parse', upload.fields([{name: 'bdFile', maxCount: 1}]),
           // 完整的补单信息
           const bdObj = {
             sw: rowData[0], rq: rowData[1], dpm: rowData[2], hym: rowData[3], ddh: rowData[4],
-            jg: rowData[5], yj: rowData[6], zcyj: rowData[7], zc: rowData[8]
+            jg: rowData[5].toString(), yj: rowData[6].toString(), zcyj: rowData[7].toString(), zc: rowData[8]
           }
-          // const bdObj = {
-          //   sw: rowData[0], rq: rowData[1], dpm: rowData[2], hym: rowData[3], ddh: rowData[4],
-          //   jg: rowData[5].toString(), yj: rowData[6].toString(), zcyj: rowData[7].toString(), zc: rowData[8]
-          // }
+          const dpObj = {
+            rq: rowData[1], dpm: rowData[2], hym: rowData[3], ddh: rowData[4],
+            jg: rowData[5].toString(), yj: rowData[6].toString()
+          }
           var mapValue = cache.get(key);
           if (mapValue) {
             mapValue.push(bdObj)
           } else {
             cache.set(key, [bdObj])
           }
-
-          lxList.push(bdObj)
         }
       })
     })
 
-
-
+    // 获取日期
+    const originalname = req.files.bdFile[0].originalname
+    const date = originalname.substring(5, originalname.indexOf('_', 5));
+    // 前缀: 【导出】3.4
+    const hhh = '【导出】' + date;
     // 遍历主持分组，写文件
     // 用来渲染页面的文件数组
     const list = [];
@@ -413,26 +370,25 @@ router.post('/parse', upload.fields([{name: 'bdFile', maxCount: 1}]),
       const zc = item[0]
       const value = item[1]
 
-      // 删除重新创建主持目录   ./博
-      const zcRootPath = uploadFolder + '/' + zc;
-      fs.rmdirSync(zcRootPath, {recursive: true})
-      fs.mkdirSync(zcRootPath)
-
-
       const downWB = new Workbook();
       const downWS = downWB.addWorksheet('Sheet1');
-      downWS.columns = yjColumns
+      downWS.columns = columns
       downWS.addRows(value);
       formatExcel(downWS);
-      // 文件名：     ./博【导出】3.4博.xlsx
-      const tempFileName = prefix + zc + '.xlsx'
-      const filePath = zcRootPath + '/' + tempFileName;
-      // console.log(filePath);
+
+      const dirPath = uploadFolder + '/' + zc;
+      fs.rmdirSync(dirPath, {recursive: true})
+      fs.mkdirSync(dirPath)
+
+      // 文件名【导出】3.4博.xlsx
+      const tempFileName = hhh + zc + '.xlsx'
+      const filePath = dirPath + '/' + tempFileName;
+      console.log(filePath);
       await downWB.xlsx.writeFile(filePath);
 
-      //  主持的店铺明细目录：   ./博/【导出】3.4
-      const zcDpmxDir = zcRootPath + '/' + prefix;
-      fs.mkdirSync(zcDpmxDir)
+    //  主持下的店铺明细
+      const dateDir = dirPath + '/' + hhh;
+      fs.mkdirSync(dateDir)
       let dianpuGroup = value.reduce((groups, item) => {
         let groupName = sw2dp(item.zc, item.sw);
         if (!groups[groupName]) {
@@ -451,93 +407,44 @@ router.post('/parse', upload.fields([{name: 'bdFile', maxCount: 1}]),
           return total.plus(new Decimal(item.jg)).plus(new Decimal(item.yj));
         }, new Decimal(0));
         let totalPrice = sum.toFixed(2);
-        // 店铺明细文件：      3.4 勤勉 3单 630元.xlsx
-        const dpMxFileName = date + ' ' + dpName + ' ' + tempList.length +'单 '+ totalPrice + '元.xlsx'
+        const thisName = date + ' ' + dpName + ' ' + tempList.length+'单 '+ totalPrice + '元.xlsx'
         tempList.push({})
         tempList.push({jg: '合计', yj: totalPrice})
 
-        // TODO 1，主持目录的店铺明细:             ./博/【导出】3.4/3.4 饭饭 26单 6607元.xlsx
-        const dpMxPath = zcDpmxDir + '/' + dpMxFileName;
-        const dpMxWB = new Workbook();
-        const dpMxWS = dpMxWB.addWorksheet('Sheet1');
-        dpMxWS.columns = dpColumns
-        dpMxWS.addRows(tempList);
-        formatExcel(dpMxWS);
-        await dpMxWB.xlsx.writeFile(dpMxPath);
-
-        // TODO 2，凌星目录的店铺明细:            ./凌星/【导出】3.4/3.4 饭饭 26单 6607元.xlsx
-        const lxDpMxPath = lxDpmxDir + '/' + dpMxFileName;
-        const lxDpMxWB = new Workbook();
-        const lxDpMxWS = lxDpMxWB.addWorksheet('Sheet1');
-        lxDpMxWS.columns = dpColumns
-        lxDpMxWS.addRows(tempList);
-        formatExcel(lxDpMxWS);
-        // console.log(lxDpMxPath);
-        await lxDpMxWB.xlsx.writeFile(lxDpMxPath);
-
+        const thisWB = new Workbook();
+        const thisWS = thisWB.addWorksheet('Sheet1');
+        thisWS.columns = dpColumns
+        thisWS.addRows(tempList);
+        formatExcel(thisWS);
+        const thisPath = dateDir + '/' + thisName;
+        console.log(thisPath);
+        await thisWB.xlsx.writeFile(thisPath);
 
         let zrceTemp = new Decimal(0)
         let zjTemp = sum.plus(zrceTemp).toFixed(2)
-        let index = dpzjtjList.length + 2
-        const zjtjObj = {
-          rq: date, dpm: dpName, jrxj: totalPrice, zrce: '0', lj: '',
-          zj: {formula: `=C${index}+D${index}`},
-          gs: {formula: `=A${index}&"  今日合计"&C${index}&"， 昨日差额"&D${index}&"，  合计差额"&E${index}`}
-        }
-        dpzjtjList.push(zjtjObj)
-
-        // 凌星的 店铺资金统计
-        lxDpzjtjList.push(zjtjObj)
+        dpzjtjList.push({rq: date, dpm: dpName, jrxj: totalPrice, zrce: zrceTemp, zj: zjTemp,
+            gs: `=${date}  今日合计${totalPrice}， 昨日差额${zrceTemp}，  合计差额${zjTemp}`})
       }
 
       const dpzjWB = new Workbook();
       const dpzjWS = dpzjWB.addWorksheet('Sheet1');
       dpzjWS.columns = dpzjtjColumns
       dpzjWS.addRows(dpzjtjList);
-      dpzjtjFormatExcel(dpzjWS);
-      const dpzjPath = zcRootPath + '/【导出】店铺资金统计表.xlsx';
+      formatExcel(dpzjWS);
+      const dpzjPath = dirPath + '/【导出】店铺资金统计表.xlsx';
+      console.log(dpzjPath);
       await dpzjWB.xlsx.writeFile(dpzjPath);
 
 
       // 创建 zip
       const zipFile = new AdmZip();
-      zipFile.addLocalFolder(zcRootPath, zc);
+      zipFile.addLocalFolder(dirPath, zc);
       const zipName = '_' + zc + '.zip'
       const zipPath = uploadFolder + '/' + zipName
       zipFile.writeZip(zipPath);
       list.push({name: zipName, path: zipPath})
     }
 
-
-    // 保存       ./凌星/【导出】3.4凌星.xlsx
-    const lxWB = new Workbook();
-    const lxWS = lxWB.addWorksheet('Sheet1');
-    lxWS.columns = yjColumns
-    lxWS.addRows(lxList);
-    formatExcel(lxWS);
-    // 文件名：     【导出】3.4凌星.xlsx
-    const lxFileName = prefix + '凌星.xlsx'
-    // 凌星根目录：         ./凌星/【导出】3.4凌星.xlsx
-    const lxPath = lxRootPath + '/' + lxFileName;
-    console.log(lxPath);
-    await lxWB.xlsx.writeFile(lxPath);
-
-    // 保存       ./凌星/【导出】店铺资金统计表.xlsx
-    const lxDpzjWB = new Workbook();
-    const lxDpzjWS = lxDpzjWB.addWorksheet('Sheet1');
-    lxDpzjWS.columns = dpzjtjColumns
-    lxDpzjWS.addRows(lxDpzjtjList);
-    dpzjtjFormatExcel(lxDpzjWS);
-    const lxDpzjPath = lxRootPath + '/【导出】店铺资金统计表.xlsx';
-    console.log(lxDpzjPath);
-    await lxDpzjWB.xlsx.writeFile(lxDpzjPath);
-
-    // 创建         _凌星.zip
-    const lxZipFile = new AdmZip();
-    lxZipFile.addLocalFolder(lxRootPath, '凌星');
-    const lxZipPath = uploadFolder + '/_凌星.zip'
-    lxZipFile.writeZip(lxZipPath);
-    list.push({name: '_凌星.zip', path: lxZipPath})
 
     res.render('filelist.ejs', {list: list, title: '表格拆分'})
   });
