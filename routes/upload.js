@@ -115,7 +115,7 @@ router.post('/upload2', upload.fields([{name: 'bdFile', maxCount: 1}, {name: 'yj
     })
     // console.log(cache)
 
-    // budan
+    // 补单文件
     const file = req.files.bdFile[0].path;
     const workbook = new Workbook();
     const workbook2 = await workbook.xlsx.readFile(file);
@@ -268,7 +268,7 @@ function formatExcel(downWS) {
   })
 }
 
-// 设置excel样式
+// 设置excel样式：店铺资金统计
 function dpzjtjFormatExcel(downWS) {
   downWS.eachRow((row, rowIndex) => {
     row.eachCell((cell, colNumber) => {
@@ -315,7 +315,7 @@ const zcColumns = [
   {header: '主持佣金', key: 'zcyj', width: 20},
   {header: '主持', key: 'zc', width: 10}
 ]
-// ./【导出】3.4/3.4 勤勉 3单 630元.xlsx
+// 店铺表头：./【导出】3.4/3.4 勤勉 3单 630元.xlsx
 const dpColumns = [
   {header: '日期', key: 'rq', width: 10},
   {header: '店铺名', key: 'dpm', width: 30},
@@ -324,7 +324,7 @@ const dpColumns = [
   {header: '价格', key: 'jg', width: 20},
   {header: '佣金', key: 'yj', width: 20}
 ]
-// 【导出】店铺资金统计表.xlsx
+// 店铺资金统计：【导出】店铺资金统计表.xlsx
 const dpzjtjColumns = [
   {header: '日期', key: 'rq', width: 10},
   {header: '店铺名', key: 'dpm', width: 30},
