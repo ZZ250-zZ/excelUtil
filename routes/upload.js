@@ -50,6 +50,21 @@ createFolder(uploadFolder);
 // 磁盘存贮
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
+    // 清空上传文件夹
+    if (!fs.existsSync(uploadFolder)) {
+      fs.mkdirSync(uploadFolder, { recursive: true });
+    } else {
+      fs.readdir(uploadFolder, (err, files) => {
+        if (err) throw err;
+
+        for (const file of files) {
+          fs.unlink(path.join(uploadFolder, file), (err) => {
+            if (err) throw err;
+          });
+        }
+      });
+    }
+
     cb(null, uploadFolder); // 他会放在当前目录下的 /upload 文件夹下（没有该文件夹，就新建一个）
   },
   filename: function (req, file, cb) { // 在这里设定文件名
@@ -57,26 +72,31 @@ var storage = multer.diskStorage({
   }
 })
 
-var upload = multer({storage: storage})
+// 文件写磁盘
+var multerDisk = multer({'storage': storage})
+
+// 文件存到内存
+const multerMem = multer({'storage': memStorage})
+const memStorage = multer.memoryStorage();
 
 
-// index
+// 跳转到 index.html
 router.get('/', function (req, res) {
   res.sendFile(path.join(__dirname, '../views/index.html'))
 })
 
-// 佣金计算
+// 跳转到 yongjinjisuan.html
 router.get('/yongjinjisuan', function (req, res) {
   res.sendFile(path.join(__dirname, '../views/yongjinjisuan.html'))
 })
 
-// 表格拆分
+// 跳转到 biaogechaifen.html
 router.get('/biaogechaifen', function (req, res) {
   res.sendFile(path.join(__dirname, '../views/biaogechaifen.html'))
 })
 
 // 上传文件
-router.post('/upload2', upload.fields([{name: 'bdFile', maxCount: 1}, {name: 'yjFile', maxCount: 1}]),
+router.post('/yjjsAction', multerMem.fields([{name: 'bdFile', maxCount: 1}, {name: 'yjFile', maxCount: 1}]),
   async function (req, res) {
     console.dir(req)
     console.dir(req.files)
@@ -92,8 +112,8 @@ router.post('/upload2', upload.fields([{name: 'bdFile', maxCount: 1}, {name: 'yj
 
     // 佣金
     let cache = new Map();
-    const fileYJ = req.files.yjFile[0].path;
-    const workbookYJ = await new Workbook().xlsx.readFile(fileYJ);
+    const fileYJ = req.files.yjFile[0].buffer;
+    const workbookYJ = await new Workbook().xlsx.load(fileYJ);
 
     workbookYJ.eachSheet((sheet, index1) => {
       sheet.eachRow((row, rowIdx) => {
@@ -116,9 +136,9 @@ router.post('/upload2', upload.fields([{name: 'bdFile', maxCount: 1}, {name: 'yj
     // console.log(cache)
 
     // 补单文件
-    const file = req.files.bdFile[0].path;
+    const file = req.files.bdFile[0].buffer;
     const workbook = new Workbook();
-    const workbook2 = await workbook.xlsx.readFile(file);
+    const workbook2 = await workbook.xlsx.load(file);
 
     var columns = [
       {header: '商务', key: 'sw', width: 15},
@@ -209,12 +229,26 @@ router.post('/upload2', upload.fields([{name: 'bdFile', maxCount: 1}, {name: 'yj
 
     const fileName = 'temp_' + date + '_lx.xlsx'
     const filePath = uploadFolder + '/' + fileName;
-    await downWB.xlsx.writeFile(filePath);
+    // await downWB.xlsx.writeFile(filePath);
+    const buffer = await downWB.xlsx.writeBuffer();
+    const mapKey = encodeURIComponent(fileName);
+    excelCache.set(mapKey, buffer);
 
 
-    const list = [{name: fileName, path: filePath}];
-    res.render('filelist.ejs', {list: list, title: '佣金计算'})
+    const list = [{name: fileName, path: mapKey}];
+    res.render('bdfilelist.ejs', {list: list, title: '佣金计算'})
   });
+
+const excelCache = new Map();
+
+// 下载文件
+router.get('/downloadBuffer', function (req, res) {
+  var filePath = decodeURIComponent(req.query.path);
+  console.log(new Date().toLocaleString(), '下载文件：' + filePath)
+  res.attachment(filePath)
+  res.set('Content-Type', 'application/octet-stream');
+  res.send(excelCache.get(req.query.path))
+})
 
 // 下载文件
 router.get('/download2', function (req, res) {
@@ -340,7 +374,7 @@ const lxRootPath = uploadFolder + '/凌星'
 
 
 // 上传文件
-router.post('/parse', upload.fields([{name: 'bdFile', maxCount: 1}]),
+router.post('/parse', multerDisk.fields([{name: 'bdFile', maxCount: 1}]),
   async function (req, res) {
     if (!req.files || Object.keys(req.files).length === 0) {
       res.status(400).send('请选择要上传的文件！');
@@ -555,7 +589,7 @@ router.get('/filelist', function (req, res) {
 })
 
 // 上传文件
-router.post('/upload', upload.array('file'), function (req, res) {
+router.post('/upload', multerDisk.array('file'), function (req, res) {
   console.dir(req.files)
 
   if (!req.files || Object.keys(req.files).length === 0) {

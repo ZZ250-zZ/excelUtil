@@ -74,7 +74,7 @@ router.get('/biaogechaifen', function (req, res) {
 })
 
 // 上传文件
-router.post('/upload2', upload.fields([{name: 'bdFile', maxCount: 1}, {name: 'yjFile', maxCount: 1}]),
+router.post('/yjjsAction', upload.fields([{name: 'bdFile', maxCount: 1}, {name: 'yjFile', maxCount: 1}]),
   async function (req, res) {
     console.dir(req)
     console.dir(req.files)

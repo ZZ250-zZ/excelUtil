@@ -24,7 +24,7 @@
     <div id="input-cards" class="container">
       <div class="card" style="height: unset; width: unset;">
         <div class="card-body">
-          <form id="form-id" action="/upload2" method="post" enctype="multipart/form-data" >
+          <form id="form-id" action="/yjjsAction" method="post" enctype="multipart/form-data" >
 <!--          <form id="form-id" action="" method="post" enctype="multipart/form-data" onsubmit="handleSubmit(event)">-->
             <h5 class="card-header">输入日期，如8.20</h5>
             <div class="input-container">
@@ -151,7 +151,7 @@
     // alert(new Decimal('0'))
     $.ajax({
       type: 'POST',
-      url:'/upload2',
+      url:'/yjjsAction',
       processData: false,
       contentType: false,
       data: new FormData($("#form-id")[0]),
