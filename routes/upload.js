@@ -580,12 +580,12 @@ router.post('/parse', multerDisk.fields([{name: 'bdFile', maxCount: 1}]),
 // 上传页面
 router.get('/index', (req, res) => {
   console.log(__dirname)
-  res.sendFile(path.join(__dirname, '../views/upload.html'))
+  res.sendFile(path.join(__dirname, '../demo/upload.html'))
 })
 
 // 列表页面
 router.get('/filelist', function (req, res) {
-  res.sendFile(path.join(__dirname, '../views/filelist.html'))
+  res.sendFile(path.join(__dirname, '../demo/filelist.html'))
 })
 
 // 上传文件
