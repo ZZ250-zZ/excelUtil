@@ -146,26 +146,6 @@
     });
   }
 
-  async function handleSubmit(event) {
-    event.preventDefault();
-    // alert(new Decimal('0'))
-    $.ajax({
-      type: 'POST',
-      url:'/yjjsAction',
-      processData: false,
-      contentType: false,
-      data: new FormData($("#form-id")[0]),
-      success: function(data){
-        alert('上传成功！')
-        window.location.reload();
-      },
-      error: function(data){
-        alert('上传失败！')
-      }
-    })
-
-
-  }
 
 </script>
 </body>

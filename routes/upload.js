@@ -10,6 +10,9 @@ const {Workbook, ValueType} = require('exceljs');
 const Decimal = require('decimal.js');
 const AdmZip = require('adm-zip');
 
+const SimpleCache = require('../util/simpleCache');
+const excelCache = new SimpleCache();
+
 //创建application/json解析
 var jsonParser = bodyParser.json();
 
@@ -76,8 +79,7 @@ var storage = multer.diskStorage({
 var multerDisk = multer({'storage': storage})
 
 // 文件存到内存
-const multerMem = multer({'storage': memStorage})
-const memStorage = multer.memoryStorage();
+const multerMem = multer({'storage': multer.memoryStorage()})
 
 
 // 跳转到 index.html
@@ -98,7 +100,6 @@ router.get('/biaogechaifen', function (req, res) {
 // 上传文件
 router.post('/yjjsAction', multerMem.fields([{name: 'bdFile', maxCount: 1}, {name: 'yjFile', maxCount: 1}]),
   async function (req, res) {
-    console.dir(req)
     console.dir(req.files)
 
     if (!req.files || Object.keys(req.files).length === 0) {
@@ -229,25 +230,31 @@ router.post('/yjjsAction', multerMem.fields([{name: 'bdFile', maxCount: 1}, {nam
 
     const fileName = 'temp_' + date + '_lx.xlsx'
     const filePath = uploadFolder + '/' + fileName;
-    // await downWB.xlsx.writeFile(filePath);
     const buffer = await downWB.xlsx.writeBuffer();
     const mapKey = encodeURIComponent(fileName);
     excelCache.set(mapKey, buffer);
+    // 释放引用
+    req.files = null;
 
 
     const list = [{name: fileName, path: mapKey}];
     res.render('bdfilelist.ejs', {list: list, title: '佣金计算'})
   });
 
-const excelCache = new Map();
 
 // 下载文件
 router.get('/downloadBuffer', function (req, res) {
   var filePath = decodeURIComponent(req.query.path);
   console.log(new Date().toLocaleString(), '下载文件：' + filePath)
-  res.attachment(filePath)
+  var fuleBuffer = excelCache.get(req.query.path);
+  if (!fuleBuffer) {
+    res.status(400).send('文件已删除，请重新执行上一步操作！');
+    return;
+  }
+
+  res.attachment(filePath);
   res.set('Content-Type', 'application/octet-stream');
-  res.send(excelCache.get(req.query.path))
+  res.send(fuleBuffer)
 })
 
 // 下载文件
