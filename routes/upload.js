@@ -13,11 +13,10 @@ const AdmZip = require('adm-zip');
 const SimpleCache = require('../util/simpleCache');
 const excelCache = new SimpleCache();
 
-//创建application/json解析
-var jsonParser = bodyParser.json();
-
-//创建application/x-www-form-urlencoded
-var urlencodedParser = bodyParser.urlencoded({extended: false});
+//创建 application/json 解析
+const jsonParser = bodyParser.json();
+//创建 application/x-www-form-urlencoded
+const formParser = bodyParser.urlencoded({extended: false});
 
 // 总表商务到店铺的映射
 function sw2dp(zc, sw) {
@@ -114,7 +113,7 @@ router.post('/yjjsAction', multerMem.fields([{name: 'bdFile', maxCount: 1}, {nam
     // 佣金
     let cache = new Map();
     const fileYJ = req.files.yjFile[0].buffer;
-    const workbookYJ = await new Workbook().xlsx.load(fileYJ);
+    let workbookYJ = await new Workbook().xlsx.load(fileYJ);
 
     workbookYJ.eachSheet((sheet, index1) => {
       sheet.eachRow((row, rowIdx) => {
@@ -134,12 +133,12 @@ router.post('/yjjsAction', multerMem.fields([{name: 'bdFile', maxCount: 1}, {nam
         }
       })
     })
+    workbookYJ = null
     // console.log(cache)
 
     // 补单文件
     const file = req.files.bdFile[0].buffer;
-    const workbook = new Workbook();
-    const workbook2 = await workbook.xlsx.load(file);
+    let workbook2 = await new Workbook().xlsx.load(file);
 
     var columns = [
       {header: '商务', key: 'sw', width: 15},
@@ -194,6 +193,7 @@ router.post('/yjjsAction', multerMem.fields([{name: 'bdFile', maxCount: 1}, {nam
         }
       })
     })
+    workbook2 = null
 
     // 写文件
     const downWB = new Workbook();
@@ -381,7 +381,7 @@ const lxRootPath = uploadFolder + '/凌星'
 
 
 // 上传文件
-router.post('/parse', multerDisk.fields([{name: 'bdFile', maxCount: 1}]),
+router.post('/parse', multerMem.fields([{name: 'bdFile', maxCount: 1}]),
   async function (req, res) {
     if (!req.files || Object.keys(req.files).length === 0) {
       res.status(400).send('请选择要上传的文件！');
@@ -401,7 +401,7 @@ router.post('/parse', multerDisk.fields([{name: 'bdFile', maxCount: 1}]),
     // 删除重新创建凌星根目录：         ./凌星
     fs.rmdirSync(lxRootPath, {recursive: true})
     fs.mkdirSync(lxRootPath)
-    //  主持的店铺明细目录：   ./博/【导出】3.4
+    //  lx店铺明细 目录：   ./【导出】3.4
     const lxDpmxDir = lxRootPath + '/' + prefix;
     fs.mkdirSync(lxDpmxDir)
 
@@ -410,9 +410,8 @@ router.post('/parse', multerDisk.fields([{name: 'bdFile', maxCount: 1}]),
     let cache = new Map();
 
     // 解析替换过 null 的 temp_3.4_lx.xlsx
-    const file = req.files.bdFile[0].path;
-    const workbook = new Workbook();
-    const workbook2 = await workbook.xlsx.readFile(file);
+    const file = req.files.bdFile[0].buffer;
+    let workbook2 = await new Workbook().xlsx.load(file);
 
     workbook2.eachSheet((sheet, index1) => {
       sheet.eachRow((row, rowIdx) => {
@@ -445,6 +444,8 @@ router.post('/parse', multerDisk.fields([{name: 'bdFile', maxCount: 1}]),
     })
 
 
+    // 创建 主持zip
+    const lxZipFile = new AdmZip();
 
     // 遍历主持分组，写文件
     // 用来渲染页面的文件数组
@@ -454,10 +455,12 @@ router.post('/parse', multerDisk.fields([{name: 'bdFile', maxCount: 1}]),
       const zc = item[0]
       const value = item[1]
 
-      // 删除重新创建主持目录   ./博
+      // 主持 根目录   ./博
       const zcRootPath = uploadFolder + '/' + zc;
       fs.rmdirSync(zcRootPath, {recursive: true})
       fs.mkdirSync(zcRootPath)
+      // 创建 主持zip
+      const zcZipFile = new AdmZip();
 
 
       const downWB = new Workbook();
@@ -469,7 +472,8 @@ router.post('/parse', multerDisk.fields([{name: 'bdFile', maxCount: 1}]),
       const tempFileName = prefix + zc + '.xlsx'
       const filePath = zcRootPath + '/' + tempFileName;
       // console.log(filePath);
-      await downWB.xlsx.writeFile(filePath);
+      // await downWB.xlsx.writeFile(filePath);
+      zcZipFile.addFile(filePath, await downWB.xlsx.writeBuffer())
 
       //  主持的店铺明细目录：   ./博/【导出】3.4
       const zcDpmxDir = zcRootPath + '/' + prefix;
@@ -504,7 +508,8 @@ router.post('/parse', multerDisk.fields([{name: 'bdFile', maxCount: 1}]),
         dpMxWS.columns = dpColumns
         dpMxWS.addRows(tempList);
         formatExcel(dpMxWS);
-        await dpMxWB.xlsx.writeFile(dpMxPath);
+        // await dpMxWB.xlsx.writeFile(dpMxPath);
+        zcZipFile.addFile(dpMxPath, await dpMxWB.xlsx.writeBuffer())
 
         // TODO 2，凌星目录的店铺明细:            ./凌星/【导出】3.4/3.4 饭饭 26单 6607元.xlsx
         const lxDpMxPath = lxDpmxDir + '/' + dpMxFileName;
@@ -514,7 +519,8 @@ router.post('/parse', multerDisk.fields([{name: 'bdFile', maxCount: 1}]),
         lxDpMxWS.addRows(tempList);
         formatExcel(lxDpMxWS);
         // console.log(lxDpMxPath);
-        await lxDpMxWB.xlsx.writeFile(lxDpMxPath);
+        // await lxDpMxWB.xlsx.writeFile(lxDpMxPath);
+        lxZipFile.addFile(lxDpMxPath, await lxDpMxWB.xlsx.writeBuffer())
 
 
         let zrceTemp = new Decimal(0)
@@ -537,16 +543,19 @@ router.post('/parse', multerDisk.fields([{name: 'bdFile', maxCount: 1}]),
       dpzjWS.addRows(dpzjtjList);
       dpzjtjFormatExcel(dpzjWS);
       const dpzjPath = zcRootPath + '/【导出】店铺资金统计表.xlsx';
-      await dpzjWB.xlsx.writeFile(dpzjPath);
+      // await dpzjWB.xlsx.writeFile(dpzjPath);
+      zcZipFile.addFile(dpzjPath, await dpzjWB.xlsx.writeBuffer())
 
 
-      // 创建 zip
-      const zipFile = new AdmZip();
-      zipFile.addLocalFolder(zcRootPath, zc);
+
+      // zcZipFile.addLocalFolder(zcRootPath, zc);
       const zipName = '_' + zc + '.zip'
       const zipPath = uploadFolder + '/' + zipName
-      zipFile.writeZip(zipPath);
-      list.push({name: zipName, path: zipPath})
+      // zcZipFile.writeZip(zipPath);
+
+      const zcCacheKey = encodeURIComponent(zipPath);
+      excelCache.set(zcCacheKey, zcZipFile.toBuffer());
+      list.push({name: zipName, path: zcCacheKey})
     }
 
 
@@ -561,7 +570,8 @@ router.post('/parse', multerDisk.fields([{name: 'bdFile', maxCount: 1}]),
     // 凌星根目录：         ./凌星/【导出】3.4凌星.xlsx
     const lxPath = lxRootPath + '/' + lxFileName;
     console.log(lxPath);
-    await lxWB.xlsx.writeFile(lxPath);
+    // await lxWB.xlsx.writeFile(lxPath);
+    lxZipFile.addFile(lxPath, await lxWB.xlsx.writeBuffer())
 
     // 保存       ./凌星/【导出】店铺资金统计表.xlsx
     const lxDpzjWB = new Workbook();
@@ -571,15 +581,21 @@ router.post('/parse', multerDisk.fields([{name: 'bdFile', maxCount: 1}]),
     dpzjtjFormatExcel(lxDpzjWS);
     const lxDpzjPath = lxRootPath + '/【导出】店铺资金统计表.xlsx';
     console.log(lxDpzjPath);
-    await lxDpzjWB.xlsx.writeFile(lxDpzjPath);
+    // await lxDpzjWB.xlsx.writeFile(lxDpzjPath);
+    lxZipFile.addFile(lxDpzjPath, await lxDpzjWB.xlsx.writeBuffer())
 
     // 创建         _凌星.zip
-    const lxZipFile = new AdmZip();
-    lxZipFile.addLocalFolder(lxRootPath, '凌星');
+    // const lxZipFile = new AdmZip();
+    // lxZipFile.addLocalFolder(lxRootPath, '凌星');
     const lxZipPath = uploadFolder + '/_凌星.zip'
-    lxZipFile.writeZip(lxZipPath);
-    list.push({name: '_凌星.zip', path: lxZipPath})
+    // lxZipFile.writeZip(lxZipPath);
 
+    const lxCacheKey = encodeURIComponent(lxZipPath);
+    excelCache.set(lxCacheKey, lxZipFile.toBuffer());
+    list.push({name: '_凌星.zip', path: lxCacheKey})
+
+    workbook2 = null
+    req.files = null
     res.render('filelist.ejs', {list: list, title: '表格拆分'})
   });
 
