@@ -1,3 +1,15 @@
+// 半小时
+const HALF_HOURS = 60 * 1000 * 30;
+// 1h
+const ONE_HOURS = 60 * 1000 * 60;
+// 2h
+const TWO_HOURS = ONE_HOURS * 2;
+
+// 缓存的过期时间
+const TIMEOUT = ONE_HOURS
+// 定时任务的时间间隔
+const TIME_INTERVAL = HALF_HOURS
+
 class SimpleCache {
     constructor() {
         this.cache = new Map();
@@ -14,15 +26,15 @@ class SimpleCache {
         if (!entry) return undefined;
 
         const currentTime = new Date();
-        const TWO_HOURS = 2 * 60 * 60 * 1000;
-        if (currentTime - entry.timestamp > TWO_HOURS) {
+        if (currentTime - entry.timestamp > TIMEOUT) {
             this.cache.delete(key);
             return undefined;
         }
         return entry.value;
     }
 
-    startAutoCleanup(intervalInMilliseconds = 30 * 60 * 1000) {
+    // 半小时检查过期状态
+    startAutoCleanup(intervalInMilliseconds = TIME_INTERVAL) {
         if (this.checkInterval) clearInterval(this.checkInterval);
         this.checkInterval = setInterval(() => this.cleanup(), intervalInMilliseconds);
     }
@@ -34,10 +46,11 @@ class SimpleCache {
         }
     }
 
+    // 删除超过 1h 的key
     cleanup() {
         const currentTime = new Date();
         for (const [key, entry] of this.cache.entries()) {
-            if (currentTime - entry.timestamp > 60 * 60 * 1000) {
+            if (currentTime - entry.timestamp > TIMEOUT) {
                 this.cache.delete(key);
             }
         }
