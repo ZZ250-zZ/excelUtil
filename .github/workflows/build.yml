@@ -1,5 +1,8 @@
 name: Build mac-arm pkg
 
+on:
+  workflow_dispatch
+
 jobs:
   build-macos:
     runs-on: macos-13-xlarge
