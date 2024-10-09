@@ -1,0 +1,21 @@
+name: Build mac-arm pkg
+
+jobs:
+  build-macos:
+    runs-on: macos-13-xlarge
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build pkg
+      run: npm run pkg
+
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: my-dll
+        path: dist/*

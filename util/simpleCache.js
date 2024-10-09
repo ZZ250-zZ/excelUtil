@@ -1,3 +1,5 @@
+const MAX_CACHE_SIZE = 100; // 设置缓存条数 上限
+
 // 半小时
 const HALF_HOURS = 60 * 1000 * 30;
 // 1h
@@ -18,6 +20,11 @@ class SimpleCache {
 
     set(key, value) {
         const currentTime = new Date();
+
+        // 如果缓存达到大小上限，删除最早的条目
+        if (this.cache.size >= MAX_CACHE_SIZE) {
+            throw new Error("内存泄露啦，请联系管理员.");
+        }
         this.cache.set(key, { value, timestamp: currentTime });
     }
 
@@ -31,6 +38,10 @@ class SimpleCache {
             return undefined;
         }
         return entry.value;
+    }
+
+    delete(key) {
+        this.cache.delete(key);
     }
 
     // 半小时检查过期状态
@@ -54,6 +65,12 @@ class SimpleCache {
                 this.cache.delete(key);
             }
         }
+    }
+
+    // 安全的清空缓存
+    clear() {
+        this.stopAutoCleanup();
+        this.cache.clear();
     }
 }
 

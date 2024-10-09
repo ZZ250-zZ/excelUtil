@@ -15,6 +15,6 @@ const port = process.env.port || 8088; //对应一个端口号
 
 app.listen(port,() =>{
 
-    console.log(`Server running on port ${port}`);
+    console.log(`Server running on port ${port}`);
 
 })
